@@ -11,11 +11,13 @@
 
 namespace LucaDegasperi\OAuth2Server;
 
+use DateInterval;
 use Illuminate\Contracts\Container\Container as Application;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Lumen\Application as LumenApplication;
 use League\OAuth2\Server\AuthorizationServer;
+use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\ResourceServer;
 use League\OAuth2\Server\Storage\AccessTokenInterface;
 use League\OAuth2\Server\Storage\AuthCodeInterface;
@@ -27,6 +29,12 @@ use LucaDegasperi\OAuth2Server\Middleware\CheckAuthCodeRequestMiddleware;
 use LucaDegasperi\OAuth2Server\Middleware\OAuthClientOwnerMiddleware;
 use LucaDegasperi\OAuth2Server\Middleware\OAuthMiddleware;
 use LucaDegasperi\OAuth2Server\Middleware\OAuthUserOwnerMiddleware;
+use LucaDegasperi\OAuth2Server\Storage\FluentAccessToken;
+use LucaDegasperi\OAuth2Server\Storage\FluentAuthCode;
+use LucaDegasperi\OAuth2Server\Storage\FluentClient;
+use LucaDegasperi\OAuth2Server\Storage\FluentRefreshToken;
+use LucaDegasperi\OAuth2Server\Storage\FluentScope;
+use LucaDegasperi\OAuth2Server\Storage\FluentUser;
 
 /**
  * This is the oauth2 server service provider class.
@@ -104,50 +112,44 @@ class OAuth2ServerServiceProvider extends ServiceProvider
     {
         $app->singleton('oauth2-server.authorizer', function ($app) {
             $config = $app['config']->get('oauth2');
-            $issuer = $app->make(AuthorizationServer::class)
-                ->setClientStorage($app->make(ClientInterface::class))
-                ->setSessionStorage($app->make(SessionInterface::class))
-                ->setAuthCodeStorage($app->make(AuthCodeInterface::class))
-                ->setAccessTokenStorage($app->make(AccessTokenInterface::class))
-                ->setRefreshTokenStorage($app->make(RefreshTokenInterface::class))
-                ->setScopeStorage($app->make(ScopeInterface::class))
-                ->requireScopeParam($config['scope_param'])
-                ->setDefaultScope($config['default_scope'])
-                ->requireStateParam($config['state_param'])
-                ->setScopeDelimiter($config['scope_delimiter'])
-                ->setAccessTokenTTL($config['access_token_ttl']);
+            $issuer = $app->make(AuthorizationServer::class,[
+                'clientRepository' => $app->make(FluentClient::class),
+                'accessTokenRepository' => $app->make(FluentAccessToken::class),
+                'scopeRepository' => $app->make(FluentScope::class),
+                'privateKey' => new CryptKey($config['private_key_path'], $config['key_passphrase']),
+                'encryptionKey' => new CryptKey($config['public_key_path'], $config['key_passphrase']),
+                'responseType' => $app->make($config['response_type'])
+            ]);
+
 
             // add the supported grant types to the authorization server
             foreach ($config['grant_types'] as $grantIdentifier => $grantParams) {
-                $grant = $app->make($grantParams['class']);
-                $grant->setAccessTokenTTL($grantParams['access_token_ttl']);
-
-                if (array_key_exists('callback', $grantParams)) {
-                    list($className, $method) = array_pad(explode('@', $grantParams['callback']), 2, 'verify');
-                    $verifier = $app->make($className);
-                    $grant->setVerifyCredentialsCallback([$verifier, $method]);
+                $params = [];
+                if ($grantIdentifier === 'password') {
+                    if (!isset($grantParams['callback'])) {
+                        throw new \Exception('No callback given for password grant.');
+                    }
+                    $params['userRepository'] = new Fluentuser($grantParams['callback']);
                 }
-
-                if (array_key_exists('auth_token_ttl', $grantParams)) {
-                    $grant->setAuthTokenTTL($grantParams['auth_token_ttl']);
+                if ($grantIdentifier === 'authorization_code') {
+                    $params['authCodeRepository'] = new FluentAuthCode();
+                    $params['authCodeTTL'] = new DateInterval('PT'.$grantParams['auth_token_ttl'].'S');
                 }
-
-                if (array_key_exists('refresh_token_ttl', $grantParams)) {
-                    $grant->setRefreshTokenTTL($grantParams['refresh_token_ttl']);
-                }
-
-                if (array_key_exists('rotate_refresh_tokens', $grantParams)) {
-                    $grant->setRefreshTokenRotation($grantParams['rotate_refresh_tokens']);
-                }
-
-                $issuer->addGrantType($grant, $grantIdentifier);
+                $params['refreshTokenRepository'] = $app->make(FluentRefreshToken::class);
+                $issuer->enableGrantType(
+                    $app->make($grantParams['class'], $params),
+                    new DateInterval('PT'.$grantParams['access_token_ttl'].'S')
+                );
             }
 
-            $checker = $app->make(ResourceServer::class);
+            $checker = $app->make(ResourceServer::class, [
+                'accessTokenRepository' => $app->make(FluentAccessToken::class),
+                'publicKey' => new CryptKey($config['public_key_path'], $config['key_passphrase'])
+            ]);
 
             $authorizer = new Authorizer($issuer, $checker);
             $authorizer->setRequest($app['request']);
-            $authorizer->setTokenType($app->make($config['token_type']));
+            $authorizer->setREsponse($app['response']);
 
             $app->refresh('request', $authorizer, 'setRequest');
 

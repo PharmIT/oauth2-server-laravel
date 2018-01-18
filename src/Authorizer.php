@@ -14,10 +14,13 @@ namespace LucaDegasperi\OAuth2Server;
 use League\OAuth2\Server\AuthorizationServer as Issuer;
 use League\OAuth2\Server\Exception\AccessDeniedException;
 use League\OAuth2\Server\ResourceServer as Checker;
+use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use League\OAuth2\Server\TokenType\TokenTypeInterface;
 use League\OAuth2\Server\Util\RedirectUri;
 use LucaDegasperi\OAuth2Server\Exceptions\NoActiveAccessTokenException;
+use Psr\Http\Message\RequestInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * This is the authorizer class.
@@ -53,6 +56,20 @@ class Authorizer
      * @var bool|null
      */
     protected $redirectUriGenerator = null;
+
+    /**
+     * The request to issue or validate
+     *
+     * @var object
+     */
+    protected $request;
+
+    /**
+     * The response to issue or validate
+     *
+     * @var object
+     */
+    protected $response;
 
     /**
      * Create a new Authorizer instance.
@@ -112,9 +129,9 @@ class Authorizer
      *
      * @return array a response object for the protocol in use
      */
-    public function issueAccessToken()
+    public function issueAccessToken(RequestInterface $request)
     {
-        return $this->issuer->issueAccessToken();
+        return $this->issuer->respondToAccessTokenRequest($request, new Response());
     }
 
     /**
@@ -292,18 +309,28 @@ class Authorizer
      */
     public function setRequest(Request $request)
     {
-        $this->issuer->setRequest($request);
-        $this->checker->setRequest($request);
+        $this->request = $request;
+    }
+
+
+    /**
+     * Set the response to use on the issuer and checker.
+     *
+     * @param \Symfony\Component\HttpFoundation\Response $response
+     */
+    public function setResponse($response)
+    {
+        $this->response = $response;
     }
 
     /**
      * Set the token type to use.
      *
-     * @param \League\OAuth2\Server\TokenType\TokenTypeInterface $tokenType
+     * @param \League\OAuth2\Server\ResponseTypes\ResponseTypeInterface $responseType
      */
-    public function setTokenType(TokenTypeInterface $tokenType)
+    public function setResponseType(ResponseTypeInterface $responseType)
     {
-        $this->issuer->setTokenType($tokenType);
-        $this->checker->setTokenType($tokenType);
+        $this->issuer->setResponseType($responseType);
+       // $this->checker->setTokenType($responseType);
     }
 }

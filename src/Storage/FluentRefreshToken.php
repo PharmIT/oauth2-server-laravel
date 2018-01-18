@@ -12,76 +12,60 @@
 namespace LucaDegasperi\OAuth2Server\Storage;
 
 use Carbon\Carbon;
+use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Entity\RefreshTokenEntity;
+use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
+use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use League\OAuth2\Server\Storage\RefreshTokenInterface;
+use LucaDegasperi\OAuth2Server\Entities\RefreshToken;
 
 /**
  * This is the fluent refresh token class.
  *
  * @author Luca Degasperi <packages@lucadegasperi.com>
  */
-class FluentRefreshToken extends AbstractFluentAdapter implements RefreshTokenInterface
+class FluentRefreshToken implements RefreshTokenRepositoryInterface
 {
     /**
-     * Return a new instance of \League\OAuth2\Server\Entity\RefreshTokenEntity.
+     * Creates a new refresh token.
      *
-     * @param string $token
-     *
-     * @return \League\OAuth2\Server\Entity\RefreshTokenEntity
+     * @return RefreshTokenEntityInterface
      */
-    public function get($token)
+    public function getNewRefreshToken()
     {
-        $result = $this->getConnection()->table('oauth_refresh_tokens')
-                ->where('oauth_refresh_tokens.id', $token)
-                ->where('oauth_refresh_tokens.expire_time', '>=', time())
-                ->first();
+        return new RefreshToken();
+    }
 
-        if (is_null($result)) {
-            return;
-        }
-
-        return (new RefreshTokenEntity($this->getServer()))
-               ->setId($result->id)
-               ->setAccessTokenId($result->access_token_id)
-               ->setExpireTime((int) $result->expire_time);
+    /**
+     * Revoke the refresh token.
+     *
+     * @param string $tokenId
+     */
+    public function revokeRefreshToken($tokenId)
+    {
+        RefreshToken::where('token', $tokenId)->delete();
+    }
+    /**
+     * Check if the refresh token has been revoked.
+     *
+     * @param string $tokenId
+     *
+     * @return bool Return true if this token has been revoked
+     */
+    public function isRefreshTokenRevoked($tokenId)
+    {
+        return RefreshToken::where('token', $tokenId)->count() === 0;
     }
 
     /**
      * Create a new refresh token_name.
      *
-     * @param  string $token
-     * @param  int $expireTime
-     * @param  string $accessToken
+     * @param RefreshTokenEntityInterface $refreshTokenEntity
      *
-     * @return \League\OAuth2\Server\Entity\RefreshTokenEntity
+     * @throws UniqueTokenIdentifierConstraintViolationException
      */
-    public function create($token, $expireTime, $accessToken)
+    public function persistNewRefreshToken(RefreshTokenEntityInterface $refreshTokenEntity)
     {
-        $this->getConnection()->table('oauth_refresh_tokens')->insert([
-            'id' => $token,
-            'expire_time' => $expireTime,
-            'access_token_id' => $accessToken,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
-
-        return (new RefreshTokenEntity($this->getServer()))
-               ->setId($token)
-               ->setAccessTokenId($accessToken)
-               ->setExpireTime((int) $expireTime);
-    }
-
-    /**
-     * Delete the refresh token.
-     *
-     * @param  \League\OAuth2\Server\Entity\RefreshTokenEntity $token
-     *
-     * @return void
-     */
-    public function delete(RefreshTokenEntity $token)
-    {
-        $this->getConnection()->table('oauth_refresh_tokens')
-        ->where('id', $token->getId())
-        ->delete();
+        $refreshTokenEntity->save();
     }
 }

@@ -149,4 +149,53 @@ return [
 
     'http_headers_only' => false,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Private Key Path
+    |--------------------------------------------------------------------------
+    |
+    |
+    */
+    'private_key_path' => 'file://path_to_private_key/private.key',
+    /*
+    |--------------------------------------------------------------------------
+    | Public Key Path
+    |--------------------------------------------------------------------------
+    |
+    |
+    */
+    'public_key_path' => 'file://path_to_private_key/public.key',
+    /*
+    |--------------------------------------------------------------------------
+    | Key Passphrase
+    |--------------------------------------------------------------------------
+    |
+    | Default value is null, put your passphrase here if the key has one
+    |
+    */
+    'key_passphrase' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Output Response Type
+    |--------------------------------------------------------------------------
+    |
+    | This will tell the authorization server the output format for the access
+    | token and the resource server how to parse the access token used.
+    |
+    | Default value is \League\OAuth2\Server\ResponseTypes\BearerTokenResponse
+    |
+    */
+    'response_type' => \League\OAuth2\Server\ResponseTypes\BearerTokenResponse::class,
+    /*
+    |--------------------------------------------------------------------------
+    | Authorization Validator
+    |--------------------------------------------------------------------------
+    |
+    | This will tell the resource server the validator to use to validate an incoming request
+    |
+    | Default value is \League\OAuth2\Server\AuthorizationValidators\BearerTokenValidator::class
+    |
+    */
+    'authorization_validator' => \League\OAuth2\Server\AuthorizationValidators\BearerTokenValidator::class,
 ];
