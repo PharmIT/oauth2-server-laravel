@@ -151,8 +151,6 @@ class OAuth2ServerServiceProvider extends ServiceProvider
 
             $authorizer = new Authorizer($issuer, $checker);
             $authorizer->setRequest($app['request']);
-            // $psr7Factory = new DiactorosFactory();
-            // $psr7Factory->createResponse($app['response'])
 
             // TODO make this compatible with laravel responses
             $authorizer->setResponse(new \Zend\Diactoros\Response());

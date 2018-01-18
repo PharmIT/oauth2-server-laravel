@@ -19,6 +19,8 @@ use League\OAuth2\Server\TokenType\TokenTypeInterface;
 use League\OAuth2\Server\Util\RedirectUri;
 use LucaDegasperi\OAuth2Server\Exceptions\NoActiveAccessTokenException;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -72,6 +74,11 @@ class Authorizer
     protected $response;
 
     /**
+     * This validation response from the resource server
+     */
+    protected $validationRespose;
+
+    /**
      * Create a new Authorizer instance.
      *
      * @param \League\OAuth2\Server\AuthorizationServer $issuer
@@ -94,34 +101,15 @@ class Authorizer
         return $this->issuer;
     }
 
-    /**
-     * Get the checker.
-     *
-     * @return \League\OAuth2\Server\ResourceServer
-     */
-    public function getChecker()
-    {
-        return $this->checker;
-    }
 
-    /**
-     * Get the current access token for the session.
-     *
-     * If the session does not have an active access token, an exception will be thrown.
-     *
-     * @throws \LucaDegasperi\OAuth2Server\Exceptions\NoActiveAccessTokenException
-     *
-     * @return \League\OAuth2\Server\Entity\AccessTokenEntity
-     */
-    public function getAccessToken()
+    public function getValidationResponse()
     {
-        $accessToken = $this->getChecker()->getAccessToken();
-
-        if (is_null($accessToken)) {
-            throw new NoActiveAccessTokenException('Tried to access session data without an active access token');
+        //TODO make this less hacky
+        if (is_null($this->validationRespose)) {
+            $this->validationRespose = $this->validateAccessToken()->getAttributes();
         }
 
-        return $accessToken;
+        return $this->validationRespose;
     }
 
     /**
@@ -129,9 +117,9 @@ class Authorizer
      *
      * @return object a response object for the protocol in use
      */
-    public function issueAccessToken(RequestInterface $request)
+    public function issueAccessToken()//RequestInterface $request
     {
-        return $this->issuer->respondToAccessTokenRequest($request, $this->response);
+        return $this->issuer->respondToAccessTokenRequest($this->request, $this->response);
     }
 
     /**
@@ -141,6 +129,7 @@ class Authorizer
      */
     public function getAuthCodeRequestParams()
     {
+        //TODO
         return $this->authCodeRequestParams;
     }
 
@@ -154,6 +143,7 @@ class Authorizer
      */
     public function getAuthCodeRequestParam($key, $default = null)
     {
+        //TODO
         if (array_key_exists($key, $this->authCodeRequestParams)) {
             return $this->authCodeRequestParams[$key];
         }
@@ -168,6 +158,7 @@ class Authorizer
      */
     public function checkAuthCodeRequest()
     {
+        //TODO
         $this->authCodeRequestParams = $this->issuer->getGrantType('authorization_code')->checkAuthorizeParams();
     }
 
@@ -182,6 +173,7 @@ class Authorizer
      */
     public function issueAuthCode($ownerType, $ownerId, $params = [])
     {
+        //TODO
         $params = array_merge($this->authCodeRequestParams, $params);
 
         return $this->issuer->getGrantType('authorization_code')->newAuthorizeRequest($ownerType, $ownerId, $params);
@@ -194,6 +186,7 @@ class Authorizer
      */
     public function authCodeRequestDeniedRedirectUri()
     {
+        //TODO
         $error = new AccessDeniedException();
 
         return $this->getRedirectUriGenerator()->make($this->getAuthCodeRequestParam('redirect_uri'), [
@@ -210,6 +203,7 @@ class Authorizer
      */
     public function getRedirectUriGenerator()
     {
+        //TODO
         if (is_null($this->redirectUriGenerator)) {
             $this->redirectUriGenerator = new RedirectUri();
         }
@@ -224,20 +218,18 @@ class Authorizer
      */
     public function setRedirectUriGenerator($redirectUri)
     {
+        //TODO
         $this->redirectUriGenerator = $redirectUri;
     }
 
     /**
      * Validate a request with an access token in it.
      *
-     * @param bool $httpHeadersOnly whether or not to check only the http headers of the request
-     * @param string|null $accessToken an access token to validate
-     *
      * @return mixed
      */
-    public function validateAccessToken($httpHeadersOnly = false, $accessToken = null)
+    public function validateAccessToken()
     {
-        return $this->checker->isValidRequest($httpHeadersOnly, $accessToken);
+        return $this->checker->validateAuthenticatedRequest($this->request);
     }
 
     /**
@@ -247,7 +239,8 @@ class Authorizer
      */
     public function getScopes()
     {
-        return $this->getAccessToken()->getScopes();
+
+        return $this->getValidationResponse()['oauth_scopes'];
     }
 
     /**
@@ -269,7 +262,7 @@ class Authorizer
             return true;
         }
 
-        return $this->getAccessToken()->hasScope($scope);
+        return in_array($scope, $this->getScopes());
     }
 
     /**
@@ -279,7 +272,8 @@ class Authorizer
      */
     public function getResourceOwnerId()
     {
-        return $this->getAccessToken()->getSession()->getOwnerId();
+        //TODO check if this is right
+        return $this->getValidationResponse()['oauth_user_id'];
     }
 
     /**
@@ -289,7 +283,9 @@ class Authorizer
      */
     public function getResourceOwnerType()
     {
-        return $this->getAccessToken()->getSession()->getOwnerType();
+        // TODO check if this is right
+        $response = $this->getValidationResponse();
+        return $response['oauth_user_id'] ? 'user' : 'client';
     }
 
     /**
@@ -299,17 +295,20 @@ class Authorizer
      */
     public function getClientId()
     {
-        return $this->checker->getAccessToken()->getSession()->getClient()->getId();
+        // TODO: check if this is right
+        return $this->getValidationResponse()['oauth_client_id'];
     }
 
     /**
      * Set the request to use on the issuer and checker.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @param $request
      */
     public function setRequest(Request $request)
     {
-        $this->request = $request;
+        $psr7Factory = new DiactorosFactory();
+
+        $this->request = $psr7Factory->createRequest($request);
     }
 
 
@@ -318,7 +317,7 @@ class Authorizer
      *
      * @param $response
      */
-    public function setResponse($response)
+    public function setResponse(ResponseInterface $response)
     {
         $this->response = $response;
     }
@@ -331,6 +330,5 @@ class Authorizer
     public function setResponseType(ResponseTypeInterface $responseType)
     {
         $this->issuer->setResponseType($responseType);
-       // $this->checker->setTokenType($responseType);
     }
 }
