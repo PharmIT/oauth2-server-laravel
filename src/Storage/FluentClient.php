@@ -99,6 +99,6 @@ class FluentClient implements ClientRepositoryInterface
             return;
         }
 
-        return $this->hydrateEntity($result);
+        return $result;
     }
 }

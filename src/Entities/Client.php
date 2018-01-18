@@ -28,6 +28,8 @@ class Client extends Model implements ClientEntityInterface
      */
     protected $table = 'oauth_clients';
 
+    public $incrementing = false;
+
     /**
      * Get the client's identifier.
      *

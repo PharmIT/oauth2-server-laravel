@@ -52,7 +52,7 @@ class FluentAccessToken implements AccessTokenRepositoryInterface
      */
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity)
     {
-        // TODO: Implement persistNewAccessToken() method.
+        $accessTokenEntity->save();
     }
 
     /**

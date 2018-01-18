@@ -28,6 +28,8 @@ class Scope extends Model implements ScopeEntityInterface
      */
     protected $table = 'oauth_scopes';
 
+    public $incrementing = false;
+
     /**
      * Get the scope's identifier.
      *
@@ -35,7 +37,7 @@ class Scope extends Model implements ScopeEntityInterface
      */
     public function getIdentifier()
     {
-        return $this->identifier;
+        return $this->id;
     }
 
     /**
@@ -45,7 +47,7 @@ class Scope extends Model implements ScopeEntityInterface
      */
     public function setIdentifier($identifier)
     {
-        $this->identifier = $identifier;
+        $this->id = $identifier;
     }
 
     public function accessTokens()

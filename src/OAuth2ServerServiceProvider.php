@@ -35,6 +35,7 @@ use LucaDegasperi\OAuth2Server\Storage\FluentClient;
 use LucaDegasperi\OAuth2Server\Storage\FluentRefreshToken;
 use LucaDegasperi\OAuth2Server\Storage\FluentScope;
 use LucaDegasperi\OAuth2Server\Storage\FluentUser;
+use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
 
 /**
  * This is the oauth2 server service provider class.
@@ -117,7 +118,7 @@ class OAuth2ServerServiceProvider extends ServiceProvider
                 'accessTokenRepository' => $app->make(FluentAccessToken::class),
                 'scopeRepository' => $app->make(FluentScope::class),
                 'privateKey' => new CryptKey($config['private_key_path'], $config['key_passphrase']),
-                'encryptionKey' => new CryptKey($config['public_key_path'], $config['key_passphrase']),
+                'encryptionKey' => $app['config']->get('app')['key'],
                 'responseType' => $app->make($config['response_type'])
             ]);
 
@@ -126,15 +127,16 @@ class OAuth2ServerServiceProvider extends ServiceProvider
             foreach ($config['grant_types'] as $grantIdentifier => $grantParams) {
                 $params = [];
                 if ($grantIdentifier === 'password') {
-                    if (!isset($grantParams['callback'])) {
-                        throw new \Exception('No callback given for password grant.');
+                    if (!isset($grantParams['repository'])) {
+                        throw new \Exception('No repository given for password grant.');
                     }
-                    $params['userRepository'] = new Fluentuser($grantParams['callback']);
+                    $params['userRepository'] = $app->make($grantParams['repository']);
                 }
                 if ($grantIdentifier === 'authorization_code') {
                     $params['authCodeRepository'] = new FluentAuthCode();
                     $params['authCodeTTL'] = new DateInterval('PT'.$grantParams['auth_token_ttl'].'S');
                 }
+
                 $params['refreshTokenRepository'] = $app->make(FluentRefreshToken::class);
                 $issuer->enableGrantType(
                     $app->make($grantParams['class'], $params),
@@ -149,7 +151,11 @@ class OAuth2ServerServiceProvider extends ServiceProvider
 
             $authorizer = new Authorizer($issuer, $checker);
             $authorizer->setRequest($app['request']);
-            $authorizer->setREsponse($app['response']);
+            // $psr7Factory = new DiactorosFactory();
+            // $psr7Factory->createResponse($app['response'])
+
+            // TODO make this compatible with laravel responses
+            $authorizer->setResponse(new \Zend\Diactoros\Response());
 
             $app->refresh('request', $authorizer, 'setRequest');
 

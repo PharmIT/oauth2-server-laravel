@@ -127,11 +127,11 @@ class Authorizer
     /**
      * Issue an access token if the request parameters are valid.
      *
-     * @return array a response object for the protocol in use
+     * @return object a response object for the protocol in use
      */
     public function issueAccessToken(RequestInterface $request)
     {
-        return $this->issuer->respondToAccessTokenRequest($request, new Response());
+        return $this->issuer->respondToAccessTokenRequest($request, $this->response);
     }
 
     /**
@@ -316,7 +316,7 @@ class Authorizer
     /**
      * Set the response to use on the issuer and checker.
      *
-     * @param \Symfony\Component\HttpFoundation\Response $response
+     * @param $response
      */
     public function setResponse($response)
     {
