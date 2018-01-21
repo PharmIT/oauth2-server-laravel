@@ -12,6 +12,7 @@
 namespace LucaDegasperi\OAuth2Server\Middleware;
 
 use Closure;
+use Illuminate\Auth\Access\AuthorizationException;
 use League\OAuth2\Server\Exception\AccessDeniedException;
 use LucaDegasperi\OAuth2Server\Authorizer;
 
@@ -45,7 +46,7 @@ class OAuthClientOwnerMiddleware
      * @param \Illuminate\Http\Request $request
      * @param \Closure $next
      *
-     * @throws \League\OAuth2\Server\Exception\AccessDeniedException
+     * @throws AuthorizationException
      *
      * @return mixed
      */
@@ -54,7 +55,7 @@ class OAuthClientOwnerMiddleware
         $this->authorizer->setRequest($request);
 
         if ($this->authorizer->getResourceOwnerType() !== 'client') {
-            throw new AccessDeniedException();
+            throw new AuthorizationException('Unauthorized');
         }
 
         return $next($request);

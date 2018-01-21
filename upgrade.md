@@ -5,3 +5,4 @@
 - Implement UserEntityInterface in your user model
 - Make sure APP_KEY is set!!
 - Authorizer::validateAccessToken() only takes request objects now
+- The exceptions thrown by the library have changed, they now are either `\League\Oauth2\Server\Exception` or `\Illuminate\Auth\Exception\AuthorizationException`
