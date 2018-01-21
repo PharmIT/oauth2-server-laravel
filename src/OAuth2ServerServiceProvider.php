@@ -19,23 +19,15 @@ use Laravel\Lumen\Application as LumenApplication;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\ResourceServer;
-use League\OAuth2\Server\Storage\AccessTokenInterface;
-use League\OAuth2\Server\Storage\AuthCodeInterface;
-use League\OAuth2\Server\Storage\ClientInterface;
-use League\OAuth2\Server\Storage\RefreshTokenInterface;
-use League\OAuth2\Server\Storage\ScopeInterface;
-use League\OAuth2\Server\Storage\SessionInterface;
 use LucaDegasperi\OAuth2Server\Middleware\CheckAuthCodeRequestMiddleware;
 use LucaDegasperi\OAuth2Server\Middleware\OAuthClientOwnerMiddleware;
 use LucaDegasperi\OAuth2Server\Middleware\OAuthMiddleware;
 use LucaDegasperi\OAuth2Server\Middleware\OAuthUserOwnerMiddleware;
-use LucaDegasperi\OAuth2Server\Storage\FluentAccessToken;
-use LucaDegasperi\OAuth2Server\Storage\FluentAuthCode;
-use LucaDegasperi\OAuth2Server\Storage\FluentClient;
-use LucaDegasperi\OAuth2Server\Storage\FluentRefreshToken;
-use LucaDegasperi\OAuth2Server\Storage\FluentScope;
-use LucaDegasperi\OAuth2Server\Storage\FluentUser;
-use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
+use LucaDegasperi\OAuth2Server\Repositories\AccessToken;
+use LucaDegasperi\OAuth2Server\Repositories\AuthCode;
+use LucaDegasperi\OAuth2Server\Repositories\Client;
+use LucaDegasperi\OAuth2Server\Repositories\RefreshToken;
+use LucaDegasperi\OAuth2Server\Repositories\Scope;
 
 /**
  * This is the oauth2 server service provider class.
@@ -114,9 +106,9 @@ class OAuth2ServerServiceProvider extends ServiceProvider
         $app->singleton('oauth2-server.authorizer', function ($app) {
             $config = $app['config']->get('oauth2');
             $issuer = $app->make(AuthorizationServer::class,[
-                'clientRepository' => $app->make(FluentClient::class),
-                'accessTokenRepository' => $app->make(FluentAccessToken::class),
-                'scopeRepository' => $app->make(FluentScope::class),
+                'clientRepository' => $app->make(Client::class),
+                'accessTokenRepository' => $app->make(AccessToken::class),
+                'scopeRepository' => $app->make(Scope::class),
                 'privateKey' => new CryptKey($config['private_key_path'], $config['key_passphrase']),
                 'encryptionKey' => $app['config']->get('app')['key'],
                 'responseType' => $app->make($config['response_type'])
@@ -133,11 +125,11 @@ class OAuth2ServerServiceProvider extends ServiceProvider
                     $params['userRepository'] = $app->make($grantParams['repository']);
                 }
                 if ($grantIdentifier === 'authorization_code') {
-                    $params['authCodeRepository'] = new FluentAuthCode();
+                    $params['authCodeRepository'] = new AuthCode();
                     $params['authCodeTTL'] = new DateInterval('PT'.$grantParams['auth_token_ttl'].'S');
                 }
 
-                $params['refreshTokenRepository'] = $app->make(FluentRefreshToken::class);
+                $params['refreshTokenRepository'] = $app->make(RefreshToken::class);
                 $issuer->enableGrantType(
                     $app->make($grantParams['class'], $params),
                     new DateInterval('PT'.$grantParams['access_token_ttl'].'S')
@@ -145,14 +137,12 @@ class OAuth2ServerServiceProvider extends ServiceProvider
             }
 
             $checker = $app->make(ResourceServer::class, [
-                'accessTokenRepository' => $app->make(FluentAccessToken::class),
+                'accessTokenRepository' => $app->make(AccessToken::class),
                 'publicKey' => new CryptKey($config['public_key_path'], $config['key_passphrase'])
             ]);
 
             $authorizer = new Authorizer($issuer, $checker);
             $authorizer->setRequest($app['request']);
-
-            // TODO make this compatible with laravel responses
             $authorizer->setResponse(new \Zend\Diactoros\Response());
 
             $app->refresh('request', $authorizer, 'setRequest');

@@ -54,7 +54,7 @@ class OAuthUserOwnerMiddleware
         $this->authorizer->setRequest($request);
 
         if ($this->authorizer->getResourceOwnerType() !== 'user') {
-            throw new AuthorizationException();
+            throw new AuthorizationException('Unauthorized');
         }
 
         return $next($request);

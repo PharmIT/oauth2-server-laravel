@@ -9,22 +9,19 @@
  * file that was distributed with this source code.
  */
 
-namespace LucaDegasperi\OAuth2Server\Storage;
+namespace LucaDegasperi\OAuth2Server\Repositories;
 
-use Illuminate\Database\ConnectionResolverInterface as Resolver;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\ScopeEntityInterface;
-use League\OAuth2\Server\Entity\ScopeEntity;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use League\OAuth2\Server\Storage\ScopeInterface;
-use LucaDegasperi\OAuth2Server\Entities\Scope;
+use LucaDegasperi\OAuth2Server\Entities\Scope as ScopeEntity;
 
 /**
  * This is the fluent scope class.
  *
  * @author Luca Degasperi <packages@lucadegasperi.com>
  */
-class FluentScope implements ScopeRepositoryInterface
+class Scope implements ScopeRepositoryInterface
 {
 
     /**
@@ -35,6 +32,7 @@ class FluentScope implements ScopeRepositoryInterface
     {
         $this->defaultScopes = $defaultScopes;
     }
+
     /**
      * Return information about a scope.
      *
@@ -44,8 +42,9 @@ class FluentScope implements ScopeRepositoryInterface
      */
     public function getScopeEntityByIdentifier($identifier)
     {
-        return Scope::where('identifier', $identifier)->first();
+        return ScopeEntity::where('identifier', $identifier)->first();
     }
+
     /**
      * Given a client, grant type and optional user identifier validate the set of scopes requested are valid and optionally
      * append additional scopes or remove requested scopes.

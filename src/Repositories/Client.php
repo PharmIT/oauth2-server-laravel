@@ -9,23 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace LucaDegasperi\OAuth2Server\Storage;
+namespace LucaDegasperi\OAuth2Server\Repositories;
 
-use Carbon\Carbon;
-use Illuminate\Database\ConnectionResolverInterface as Resolver;
-use League\OAuth2\Server\Entities\ClientEntityInterface;
-use League\OAuth2\Server\Entity\ClientEntity;
-use League\OAuth2\Server\Entity\SessionEntity;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
-use League\OAuth2\Server\Storage\ClientInterface;
-use LucaDegasperi\OAuth2Server\Entities\Client;
+use LucaDegasperi\OAuth2Server\Entities\Client as ClientEntity;
 
 /**
  * This is the fluent client class.
  *
  * @author Luca Degasperi <packages@lucadegasperi.com>
  */
-class FluentClient implements ClientRepositoryInterface
+class Client implements ClientRepositoryInterface
 {
     /**
      * Limit clients to grants.
@@ -74,24 +68,26 @@ class FluentClient implements ClientRepositoryInterface
      * @param bool $mustValidateSecret If true the client must attempt to validate the secret if the client
      *                                        is confidential
      *
-     * @return ClientEntityInterface
+     * @throws \Exception
+     *
+     * @return ClientEntity|null
      */
     public function getClientEntity($clientId, $grantType, $clientSecret = null, $mustValidateSecret = true)
     {
         $query = null;
 
         if ($mustValidateSecret && is_null($clientSecret)) {
-            // TODO propper exception
+            // TODO: correct exception type
             throw new \Exception('No client secret provided');
         }
 
-        $query = Client::where('id', $clientId);
+        $query = ClientEntity::where('id', $clientId);
         if (!is_null($clientSecret)) {
             $query = $query->where('oauth_clients.secret', $clientSecret);
         }
 
 
-        // TODO check grants
+        // TODO: check grants
 
         $result = $query->first();
 

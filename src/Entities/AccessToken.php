@@ -26,7 +26,7 @@ use League\OAuth2\Server\Entities\Traits\AccessTokenTrait;
 class AccessToken extends Model implements AccessTokenEntityInterface
 {
     use AccessTokenTrait;
-    // TODO: migrations
+
     /**
      * The table associated with the model.
      *

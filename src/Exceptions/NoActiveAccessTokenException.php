@@ -11,14 +11,14 @@
 
 namespace LucaDegasperi\OAuth2Server\Exceptions;
 
-use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 
 /**
  * This is the no active access token exception class.
  *
  * @author Troy Pavlek <troy@tpavlek.me>
  */
-class NoActiveAccessTokenException extends Exception
+class NoActiveAccessTokenException extends AuthorizationException
 {
     //
 }

@@ -14,6 +14,7 @@ namespace LucaDegasperi\OAuth2Server\Middleware;
 use Closure;
 use League\OAuth2\Server\Exception\InvalidScopeException;
 use LucaDegasperi\OAuth2Server\Authorizer;
+use LucaDegasperi\OAuth2Server\Exceptions\MissingScopeException;
 
 /**
  * This is the oauth middleware class.
@@ -30,22 +31,13 @@ class OAuthMiddleware
     protected $authorizer;
 
     /**
-     * Whether or not to check the http headers only for an access token.
-     *
-     * @var bool
-     */
-    protected $httpHeadersOnly = false;
-
-    /**
      * Create a new oauth middleware instance.
      *
      * @param \LucaDegasperi\OAuth2Server\Authorizer $authorizer
-     * @param bool $httpHeadersOnly
      */
-    public function __construct(Authorizer $authorizer, $httpHeadersOnly = false)
+    public function __construct(Authorizer $authorizer)
     {
         $this->authorizer = $authorizer;
-        $this->httpHeadersOnly = $httpHeadersOnly;
     }
 
     /**
@@ -55,7 +47,7 @@ class OAuthMiddleware
      * @param \Closure $next
      * @param string|null $scopesString
      *
-     * @throws \League\OAuth2\Server\Exception\InvalidScopeException
+     * @throws MissingScopeException
      *
      * @return mixed
      */
@@ -69,7 +61,7 @@ class OAuthMiddleware
 
         $this->authorizer->setRequest($request);
 
-        $this->authorizer->validateAccessToken($this->httpHeadersOnly);
+        $this->authorizer->validateAccessToken();
         $this->validateScopes($scopes);
 
         return $next($request);
@@ -80,12 +72,12 @@ class OAuthMiddleware
      *
      * @param $scopes
      *
-     * @throws \League\OAuth2\Server\Exception\InvalidScopeException
+     * @throws MissingScopeException
      */
     public function validateScopes($scopes)
     {
         if (!empty($scopes) && !$this->authorizer->hasScope($scopes)) {
-            throw new InvalidScopeException(implode(',', $scopes));
+            throw new MissingScopeException($scopes);
         }
     }
 }

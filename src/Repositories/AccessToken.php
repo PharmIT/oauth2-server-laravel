@@ -9,25 +9,21 @@
  * file that was distributed with this source code.
  */
 
-namespace LucaDegasperi\OAuth2Server\Storage;
+namespace LucaDegasperi\OAuth2Server\Repositories;
 
-use Carbon\Carbon;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\ScopeEntityInterface;
-use League\OAuth2\Server\Entity\AccessTokenEntity;
-use League\OAuth2\Server\Entity\ScopeEntity;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
-use League\OAuth2\Server\Storage\AccessTokenInterface;
-use LucaDegasperi\OAuth2Server\Entities\AccessToken;
+use LucaDegasperi\OAuth2Server\Entities\AccessToken as AccessTokenEntity;
 
 /**
  * This is the fluent access token class.
  *
  * @author Luca Degasperi <packages@lucadegasperi.com>
  */
-class FluentAccessToken implements AccessTokenRepositoryInterface
+class AccessToken implements AccessTokenRepositoryInterface
 {
     /**
      * Create a new access token
@@ -36,11 +32,11 @@ class FluentAccessToken implements AccessTokenRepositoryInterface
      * @param ScopeEntityInterface[] $scopes
      * @param mixed $userIdentifier
      *
-     * @return AccessTokenEntityInterface
+     * @return AccessTokenEntity
      */
     public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, $userIdentifier = null)
     {
-        return new AccessToken();
+        return new AccessTokenEntity();
     }
 
     /**

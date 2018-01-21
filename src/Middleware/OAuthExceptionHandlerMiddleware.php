@@ -13,7 +13,7 @@ namespace LucaDegasperi\OAuth2Server\Middleware;
 
 use Closure;
 use Illuminate\Http\JsonResponse;
-use League\OAuth2\Server\Exception\OAuthException;
+use League\OAuth2\Server\Exception\OAuthServerException;
 
 /**
  * This is the exception handler middleware class.
@@ -40,13 +40,13 @@ class OAuthExceptionHandlerMiddleware
             }
 
             return $response;
-        } catch (OAuthException $e) {
+        } catch (OAuthServerException $e) {
             $data = [
-                'error' => $e->errorType,
+                'error' => $e->getErrorType(),
                 'error_description' => $e->getMessage(),
             ];
 
-            return new JsonResponse($data, $e->httpStatusCode, $e->getHttpHeaders());
+            return new JsonResponse($data, $e->getHttpStatusCode(), $e->getHttpHeaders());
         }
     }
 }

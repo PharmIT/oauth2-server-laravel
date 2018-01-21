@@ -9,31 +9,28 @@
  * file that was distributed with this source code.
  */
 
-namespace LucaDegasperi\OAuth2Server\Storage;
+namespace LucaDegasperi\OAuth2Server\Repositories;
 
-use Carbon\Carbon;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
-use League\OAuth2\Server\Entity\RefreshTokenEntity;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
-use League\OAuth2\Server\Storage\RefreshTokenInterface;
-use LucaDegasperi\OAuth2Server\Entities\RefreshToken;
+use LucaDegasperi\OAuth2Server\Entities\RefreshToken as RefreshTokenEntity;
 
 /**
  * This is the fluent refresh token class.
  *
  * @author Luca Degasperi <packages@lucadegasperi.com>
  */
-class FluentRefreshToken implements RefreshTokenRepositoryInterface
+class RefreshToken implements RefreshTokenRepositoryInterface
 {
     /**
      * Creates a new refresh token.
      *
-     * @return RefreshTokenEntityInterface
+     * @return RefreshTokenEntity
      */
     public function getNewRefreshToken()
     {
-        return new RefreshToken();
+        return new RefreshTokenEntity();
     }
 
     /**
@@ -43,7 +40,7 @@ class FluentRefreshToken implements RefreshTokenRepositoryInterface
      */
     public function revokeRefreshToken($tokenId)
     {
-        RefreshToken::where('token', $tokenId)->delete();
+        RefreshTokenEntity::where('token', $tokenId)->delete();
     }
     /**
      * Check if the refresh token has been revoked.
@@ -54,7 +51,7 @@ class FluentRefreshToken implements RefreshTokenRepositoryInterface
      */
     public function isRefreshTokenRevoked($tokenId)
     {
-        return RefreshToken::where('token', $tokenId)->count() === 0;
+        return RefreshTokenEntity::where('token', $tokenId)->count() === 0;
     }
 
     /**

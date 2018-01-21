@@ -25,7 +25,6 @@ use League\OAuth2\Server\Entities\ScopeEntityInterface;
  */
 class AuthCode extends Model implements AuthCodeEntityInterface
 {
-    // TODO migrations
     /**
      * The table associated with the model.
      *

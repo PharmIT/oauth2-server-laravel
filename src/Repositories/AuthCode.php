@@ -9,23 +9,19 @@
  * file that was distributed with this source code.
  */
 
-namespace LucaDegasperi\OAuth2Server\Storage;
+namespace LucaDegasperi\OAuth2Server\Repositories;
 
-use Carbon\Carbon;
 use League\OAuth2\Server\Entities\AuthCodeEntityInterface;
-use League\OAuth2\Server\Entity\AuthCodeEntity;
-use League\OAuth2\Server\Entity\ScopeEntity;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
-use League\OAuth2\Server\Storage\AuthCodeInterface;
-use LucaDegasperi\OAuth2Server\Entities\AuthCode;
+use LucaDegasperi\OAuth2Server\Entities\AuthCode as AuthCodeEntity;
 
 /**
  * This is the fluent auth code class.
  *
  * @author Luca Degasperi <packages@lucadegasperi.com>
  */
-class FluentAuthCode implements AuthCodeRepositoryInterface
+class AuthCode implements AuthCodeRepositoryInterface
 {
 
     /**
@@ -35,7 +31,7 @@ class FluentAuthCode implements AuthCodeRepositoryInterface
      */
     public function getNewAuthCode()
     {
-        return new AuthCode();
+        return new AuthCodeEntity();
     }
 
     /**
@@ -58,7 +54,7 @@ class FluentAuthCode implements AuthCodeRepositoryInterface
      */
     public function revokeAuthCode($codeId)
     {
-        AuthCode::where('code', $codeId)->delete();
+        AuthCodeEntity::where('code', $codeId)->delete();
     }
 
     /**
@@ -70,6 +66,6 @@ class FluentAuthCode implements AuthCodeRepositoryInterface
      */
     public function isAuthCodeRevoked($codeId)
     {
-        return AuthCode::where('code', $codeId)->count() === 0;
+        return AuthCodeEntity::where('code', $codeId)->count() === 0;
     }
 }

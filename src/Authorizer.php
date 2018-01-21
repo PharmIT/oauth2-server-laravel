@@ -12,14 +12,11 @@
 namespace LucaDegasperi\OAuth2Server;
 
 use League\OAuth2\Server\AuthorizationServer as Issuer;
-use League\OAuth2\Server\Exception\AccessDeniedException;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\ResourceServer as Checker;
-use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
-use League\OAuth2\Server\TokenType\TokenTypeInterface;
-use League\OAuth2\Server\Util\RedirectUri;
 use LucaDegasperi\OAuth2Server\Exceptions\NoActiveAccessTokenException;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -62,14 +59,14 @@ class Authorizer
     /**
      * The request to issue or validate
      *
-     * @var object
+     * @var \Psr\Http\Message\ServerRequestInterface
      */
     protected $request;
 
     /**
      * The response to issue or validate
      *
-     * @var object
+     * @var \Psr\Http\Message\ResponseInterface
      */
     protected $response;
 
@@ -117,9 +114,11 @@ class Authorizer
      *
      * @return object a response object for the protocol in use
      */
-    public function issueAccessToken()//RequestInterface $request
+    public function issueAccessToken()
     {
-        return $this->issuer->respondToAccessTokenRequest($this->request, $this->response);
+        return $this->convertResponse(
+            $this->issuer->respondToAccessTokenRequest($this->request, $this->response)
+        );
     }
 
     /**
@@ -225,11 +224,17 @@ class Authorizer
     /**
      * Validate a request with an access token in it.
      *
+     * @throws NoActiveAccessTokenException
+     *
      * @return mixed
      */
     public function validateAccessToken()
     {
-        return $this->checker->validateAuthenticatedRequest($this->request);
+        try {
+            return $this->checker->validateAuthenticatedRequest($this->request);
+        } catch (OAuthServerException $e) {
+            throw new NoActiveAccessTokenException($e);
+        }
     }
 
     /**
@@ -239,7 +244,6 @@ class Authorizer
      */
     public function getScopes()
     {
-
         return $this->getValidationResponse()['oauth_scopes'];
     }
 
@@ -307,7 +311,6 @@ class Authorizer
     public function setRequest(Request $request)
     {
         $psr7Factory = new DiactorosFactory();
-
         $this->request = $psr7Factory->createRequest($request);
     }
 
@@ -323,12 +326,17 @@ class Authorizer
     }
 
     /**
-     * Set the token type to use.
+     * Convert a PSR7 response to a Illuminate Response.
      *
-     * @param \League\OAuth2\Server\ResponseTypes\ResponseTypeInterface $responseType
+     * @param \Psr\Http\Message\ResponseInterface $psrResponse
+     * @return \Illuminate\Http\Response
      */
-    public function setResponseType(ResponseTypeInterface $responseType)
+    public function convertResponse($psrResponse)
     {
-        $this->issuer->setResponseType($responseType);
+        return new \Illuminate\Http\Response(
+            $psrResponse->getBody(),
+            $psrResponse->getStatusCode(),
+            $psrResponse->getHeaders()
+        );
     }
 }
