@@ -58,7 +58,7 @@ class AccessToken implements AccessTokenRepositoryInterface
      */
     public function revokeAccessToken($tokenId)
     {
-        // TODO: Implement revokeAccessToken() method.
+        AccessTokenEntity::where('token', $tokenId)->delete();
     }
 
     /**
@@ -70,6 +70,6 @@ class AccessToken implements AccessTokenRepositoryInterface
      */
     public function isAccessTokenRevoked($tokenId)
     {
-        // TODO: Implement isAccessTokenRevoked() method.
+        return AccessTokenEntity::where('token', $tokenId)->count() === 0;
     }
 }
