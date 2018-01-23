@@ -18,6 +18,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Lumen\Application as LumenApplication;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
+use League\OAuth2\Server\Grant\GrantTypeInterface;
 use League\OAuth2\Server\ResourceServer;
 use LucaDegasperi\OAuth2Server\Middleware\CheckAuthCodeRequestMiddleware;
 use LucaDegasperi\OAuth2Server\Middleware\OAuthClientOwnerMiddleware;
@@ -130,8 +131,15 @@ class OAuth2ServerServiceProvider extends ServiceProvider
                 }
 
                 $params['refreshTokenRepository'] = $app->make(RefreshToken::class);
+                /** @var GrantTypeInterface $grantType */
+                $grantType = $app->make($grantParams['class'], $params);
+
+                if (isset($grantParams['refresh_token_ttl'])) {
+                    $grantType->setRefreshTokenTTL(new DateInterval('PT'.$grantParams['refresh_token_ttl'].'S'));
+                }
+
                 $issuer->enableGrantType(
-                    $app->make($grantParams['class'], $params),
+                    $grantType,
                     new DateInterval('PT'.$grantParams['access_token_ttl'].'S')
                 );
             }
