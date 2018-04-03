@@ -15,7 +15,7 @@ use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use LucaDegasperi\OAuth2Server\Entities\RefreshToken as RefreshTokenEntity;
-
+use Carbon\Carbon;
 /**
  * This is the fluent refresh token class.
  *
@@ -40,7 +40,7 @@ class RefreshToken implements RefreshTokenRepositoryInterface
      */
     public function revokeRefreshToken($tokenId)
     {
-        RefreshTokenEntity::where('token', $tokenId)->delete();
+        RefreshTokenEntity::where('token', $tokenId)->first()->setExpiryDateTime(Carbon::now()->addHours($app['config']->get('oauth2')['revoke_refresh_token_validity']));
     }
     /**
      * Check if the refresh token has been revoked.

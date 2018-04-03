@@ -17,6 +17,7 @@ use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use LucaDegasperi\OAuth2Server\Entities\AccessToken as AccessTokenEntity;
+use Carbon\Carbon;
 
 /**
  * This is the fluent access token class.
@@ -58,7 +59,7 @@ class AccessToken implements AccessTokenRepositoryInterface
      */
     public function revokeAccessToken($tokenId)
     {
-        AccessTokenEntity::where('token', $tokenId)->delete();
+        AccessTokenEntity::where('token', $tokenId)->first()->setExpiryDateTime(Carbon::now());
     }
 
     /**
