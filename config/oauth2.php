@@ -103,6 +103,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Revoke Refresh token grace period
+    |--------------------------------------------------------------------------
+    |
+    | Refresh tokens will be valid for this period of time past after they have been revoked.
+    |
+    */
+    'refresh_token_grace_period' => 0,
+
+    /*
+    |--------------------------------------------------------------------------
     | Limit clients to specific grants
     |--------------------------------------------------------------------------
     |
@@ -198,13 +208,4 @@ return [
     |
     */
     'authorization_validator' => \League\OAuth2\Server\AuthorizationValidators\BearerTokenValidator::class,
-    /*
-    |--------------------------------------------------------------------------
-    | Revoke Refresh token validity
-    |--------------------------------------------------------------------------
-    |
-    | The amount will be added to the expiration date in hours when refresh tokens are revoked
-    |
-    */
-    'revoke_refresh_token_validity' => 25,
 ];

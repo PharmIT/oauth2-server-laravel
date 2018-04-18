@@ -40,7 +40,17 @@ class RefreshToken implements RefreshTokenRepositoryInterface
      */
     public function revokeRefreshToken($tokenId)
     {
-        RefreshTokenEntity::where('token', $tokenId)->first()->setExpiryDateTime(Carbon::now()->addHours(config('oauth2.revoke_refresh_token_validity')));
+        $gracePeriod = config('oauth2.refresh_token_grace_period');
+        $token = RefreshTokenEntity::where('token', $tokenId)->first();
+        if ($gracePeriod > 0) {
+            $token->setExpiryDateTime(Carbon::now()->addSeconds($gracePeriod));
+            $token->save();
+
+            return;
+        }
+
+        $token->delete();
+
     }
     /**
      * Check if the refresh token has been revoked.
@@ -51,7 +61,7 @@ class RefreshToken implements RefreshTokenRepositoryInterface
      */
     public function isRefreshTokenRevoked($tokenId)
     {
-        return RefreshTokenEntity::where('token', $tokenId)->count() === 0;
+        return RefreshTokenEntity::where('token', $tokenId)->where('expires_at', '>', Carbon::now())->count() === 0;
     }
 
     /**
