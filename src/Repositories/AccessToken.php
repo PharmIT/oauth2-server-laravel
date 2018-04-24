@@ -59,7 +59,9 @@ class AccessToken implements AccessTokenRepositoryInterface
      */
     public function revokeAccessToken($tokenId)
     {
-        AccessTokenEntity::where('token', $tokenId)->first()->setExpiryDateTime(Carbon::now());
+        $token = AccessTokenEntity::where('token', $tokenId)->first();
+        $token->setExpiryDateTime(Carbon::now());
+        $token->save();
     }
 
     /**
