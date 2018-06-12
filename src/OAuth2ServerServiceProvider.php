@@ -12,6 +12,7 @@
 namespace LucaDegasperi\OAuth2Server;
 
 use DateInterval;
+use Defuse\Crypto\Key;
 use Illuminate\Contracts\Container\Container as Application;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Support\ServiceProvider;
@@ -111,7 +112,7 @@ class OAuth2ServerServiceProvider extends ServiceProvider
                 'accessTokenRepository' => $app->make(AccessToken::class),
                 'scopeRepository' => $app->make(Scope::class),
                 'privateKey' => new CryptKey($config['private_key_path'], $config['key_passphrase']),
-                'encryptionKey' => $app['config']->get('app')['key'],
+                'encryptionKey' => Key::loadFromAsciiSafeString($config['encryption_key']),
                 'responseType' => $app->make($config['response_type'])
             ]);
 

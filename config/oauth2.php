@@ -208,4 +208,16 @@ return [
     |
     */
     'authorization_validator' => \League\OAuth2\Server\AuthorizationValidators\BearerTokenValidator::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Encryption key
+    |--------------------------------------------------------------------------
+    |
+    | Used for encrypting refresh tokens and authorizations
+    |
+    | Can be generated using: vendor/bin/generate-defuse-key
+    |
+    */
+    'encryption_key' => null,
 ];
