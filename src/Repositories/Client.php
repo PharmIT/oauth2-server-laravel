@@ -35,7 +35,7 @@ class Client implements ClientRepositoryInterface
      *
      * @return ClientEntity|null
      */
-    public function getClientEntity($clientId, $grantType, $clientSecret = null, $mustValidateSecret = true)
+    public function getClientEntity($clientId, $grantType = null, $clientSecret = null, $mustValidateSecret = true)
     {
         $query = null;
 
