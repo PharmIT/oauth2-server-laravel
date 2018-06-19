@@ -41,6 +41,8 @@ class AccessToken extends Model implements AccessTokenEntityInterface
      */
     protected $dates = ['expires_at'];
 
+    protected $add_scopes = [];
+
     /**
      * Get the token's identifier.
      *
@@ -128,7 +130,17 @@ class AccessToken extends Model implements AccessTokenEntityInterface
      */
     public function addScope(ScopeEntityInterface $scope)
     {
-        $this->scopes()->attach($scope);
+        $this->add_scopes[] = $scope->getIdentifier();
+    }
+
+    /**
+     * Return an array of scopes associated with the token.
+     *
+     * @return ScopeEntityInterface[]
+     */
+    public function getAddScopes()
+    {
+        return $this->add_scopes;
     }
 
     /**

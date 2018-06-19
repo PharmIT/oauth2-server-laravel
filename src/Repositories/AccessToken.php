@@ -50,6 +50,8 @@ class AccessToken implements AccessTokenRepositoryInterface
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity)
     {
         $accessTokenEntity->save();
+
+        $accessTokenEntity->scopes()->attach($accessTokenEntity->getAddScopes());
     }
 
     /**

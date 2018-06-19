@@ -64,9 +64,9 @@ class Scope implements ScopeRepositoryInterface
         $clientScopes = $clientEntity->scopes;
         // TODO: this can be simplified imho.
         $scopes = array_filter($scopes, function ($scope) use ($clientScopes) {
-            $identifier = $scope->getItentifier();
+            $identifier = $scope->getIdentifier();
             return $clientScopes->contains(function ($key, $value) use ($identifier) {
-                $value->getIdentifer() == $identifier;
+                $value->getIdentifier() == $identifier;
             });
         });
         // TODO: add possibility to append scopes from clients or grants

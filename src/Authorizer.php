@@ -128,7 +128,6 @@ class Authorizer
      */
     public function getAuthCodeRequestParams()
     {
-        //TODO
         return $this->authCodeRequestParams;
     }
 
@@ -142,7 +141,6 @@ class Authorizer
      */
     public function getAuthCodeRequestParam($key, $default = null)
     {
-        //TODO
         if (array_key_exists($key, $this->authCodeRequestParams)) {
             return $this->authCodeRequestParams[$key];
         }
@@ -157,8 +155,7 @@ class Authorizer
      */
     public function checkAuthCodeRequest()
     {
-        //TODO
-        $this->authCodeRequestParams = $this->issuer->getGrantType('authorization_code')->checkAuthorizeParams();
+        $this->authCodeRequestParams = $this->issuer->validateAuthorizationRequest($this->request);
     }
 
     /**

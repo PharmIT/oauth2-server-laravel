@@ -45,6 +45,8 @@ class AuthCode implements AuthCodeRepositoryInterface
     {
         // TODO throw exceptions
         $authCodeEntity->save();
+
+        $accessTokenEntity->scopes()->attach($accessTokenEntity->getAddScopes());
     }
 
     /**
