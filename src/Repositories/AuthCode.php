@@ -43,10 +43,9 @@ class AuthCode implements AuthCodeRepositoryInterface
      */
     public function persistNewAuthCode(AuthCodeEntityInterface $authCodeEntity)
     {
-        // TODO throw exceptions
         $authCodeEntity->save();
 
-        $accessTokenEntity->scopes()->attach($accessTokenEntity->getAddScopes());
+        $authCodeEntity->scopes()->attach($authCodeEntity->getAddScopes());
     }
 
     /**

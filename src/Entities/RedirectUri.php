@@ -25,7 +25,7 @@ class RedirectUri extends Model
      *
      * @var string
      */
-    protected $table = 'oauth_client_redirect_uris';
+    protected $table = 'oauth_client_endpoints';
 
     public function client()
     {

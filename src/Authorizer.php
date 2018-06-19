@@ -167,29 +167,13 @@ class Authorizer
      *
      * @return string the auth code redirect url
      */
-    public function issueAuthCode($ownerType, $ownerId, $params = [])
+    public function issueAuthCode($user, $approved)
     {
-        //TODO
-        $params = array_merge($this->authCodeRequestParams, $params);
+        $this->authCodeRequestParams->setUser($user); 
 
-        return $this->issuer->getGrantType('authorization_code')->newAuthorizeRequest($ownerType, $ownerId, $params);
-    }
+        $this->authCodeRequestParams->setAuthorizationApproved($approved);
 
-    /**
-     * Generate a redirect uri when the auth code request is denied by the user.
-     *
-     * @return string a correctly formed url to redirect back to
-     */
-    public function authCodeRequestDeniedRedirectUri()
-    {
-        //TODO
-        $error = new AccessDeniedException();
-
-        return $this->getRedirectUriGenerator()->make($this->getAuthCodeRequestParam('redirect_uri'), [
-                        'error' => $error->errorType,
-                        'error_description' => $error->getMessage(),
-                ]
-        );
+        return $this->issuer->completeAuthorizationRequest($this->authCodeRequestParams, $this->response);
     }
 
     /**

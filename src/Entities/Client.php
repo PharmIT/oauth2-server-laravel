@@ -90,7 +90,7 @@ class Client extends Model implements ClientEntityInterface
     public function getRedirectUri()
     {
         return $this->redirectUris->map(function ($item, $key) {
-            return $item->uri;
+            return $item->redirect_uri;
         })->toArray();
     }
 
