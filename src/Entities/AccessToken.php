@@ -150,7 +150,7 @@ class AccessToken extends Model implements AccessTokenEntityInterface
      */
     public function getScopes()
     {
-        return $this->scopes->toArray();
+        return $this->scopes->pluck('id')->toArray();
     }
 
     public function client()
