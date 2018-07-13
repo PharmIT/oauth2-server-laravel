@@ -19,7 +19,7 @@
         "illuminate/console": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.*",
         "illuminate/contracts": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.*",
         "illuminate/http": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.*",
-        "illuminate/support": "5.1.* || 5.2.* || 5.3.* || 5.4. || 5.5.**",
+        "illuminate/support": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.*",
         "illuminate/config": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.*",
         "defuse/php-encryption": "2.1.0",
         "league/oauth2-server": "7.1.*",
